@@ -18,5 +18,9 @@ docker run -i --rm pipenv_to_requirements < Pipfile
 
 ### Generate requirements-dev.txt
 ```sh
+# local image:
 docker run -i --rm pipenv_to_requirements -d < Pipfile
+
+# dockerhub image:
+docker run -i --rm wesleydeanflexion/pipenv_to_requirements -d < Pipfile
 ```
