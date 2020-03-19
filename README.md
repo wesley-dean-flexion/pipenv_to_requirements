@@ -1,5 +1,5 @@
 # pipenv_to_requirements
-This is a tool to convert a Pipenv file into requirements.txt 
+This is a tool to convert a Pipenv file into requirements.txt
 (or requirements-dev.txt).
 
 When containerizing a Python application that used pipenv to specify
@@ -7,8 +7,8 @@ requirements, I found that the images were very large -- often more
 than 2.0GB -- with a large amount of cached data and long build times,
 even on reasonable hardware.  By switching to use 'requirements.txt'
 instead of Pipfile (and Pipfile.lock), I was able to drop one image
-from 2.16GB to 0.68GB (688MB) and cut build times by about the same 
-ratio (roughly 7 minutes down to roughly 2 minutes on average).  The 
+from 2.16GB to 0.68GB (688MB) and cut build times by about the same
+ratio (roughly 7 minutes down to roughly 2 minutes on average).  The
 image stored on AWS ECR was about 0.200GB (200MB) which was very
 helpful to us.  I was able to explore this path because virtual
 environments -- which can be immensely helpful when developing in an
@@ -34,7 +34,7 @@ This image goes through two steps:
 
 ### 1. Generate Pipfile.lock
 
-The pipenv_to_requirements tool works from a `Pipfile.lock` file 
+The pipenv_to_requirements tool works from a `Pipfile.lock` file
 (not `Pipfile`); therefore, the first step is to generate `Pipfile.lock`
 for use in the next step.
 
@@ -61,7 +61,7 @@ docker run -i [...] < Pipfile
 The "piped" form is more readable while the "redirected" form spawns
 one less process (which makes it slightly more efficient).
 
-Note: because `docker run` is reading from STDIN, the `-i` flag for 
+Note: because `docker run` is reading from STDIN, the `-i` flag for
 `docker run` is required to bind STDIN to the container.
 
 ### 2. Generate requirements.txt
@@ -73,13 +73,14 @@ to generate `requirements.txt` or `requirements-dev.txt`.
 
 ### Flags
 
-A container running this image is able to pass several flags along to 
+A container running this image is able to pass several flags along to
 `pipenv_to_requirements`:
 
 * **-o**: generate `requirements.txt` (the default)
 * **-d**: generate `requirements-dev.txt`
 * **-q**: run quietly (don't display logs)
 * **-f**: generate files with frozen versions
+* **-l**: the file provided was a Pipfile.lock (not a Pipfile)
 
 The flags are placed at the end of the `docker run` command after the
 name of the image.  Technically speaking, a script is setup as an
@@ -87,7 +88,7 @@ ENTRYPOINT so that flags are passed as through to the script as by
 a CMD option.
 
 The script that manages the process is a Bash script that uses
-`getopts` so GNU-style flag combination is supported (e.g., 
+`getopts` so GNU-style flag combination is supported (e.g.,
 `-df` is the same as `-d -f`)
 
 ### To Build
@@ -124,6 +125,12 @@ cat Pipfile | docker run -i --rm pipenv_to_requirements > requirements.txt
 
 # redirect form with explicit output specification
 docker run -i --rm pipenv_to_requirements -o < Pipfile > requirements.txt
+```
+
+### Generate requirements.txt from Pipfile.lock
+
+```sh
+cat Pipfile.lock | docker run -li --rm pipenv_to_requirements > requirements.txt
 ```
 
 ### Generate requirements-dev from Pipfile
